@@ -10,40 +10,37 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import wav from 'wav';
+import {googleAI} from '@genkit-ai/google-genai';
 
 const GenerateCelebrationAnimationInputSchema = z.object({
   teamName: z.string().describe('The name of the team that scored.'),
   playerName: z.string().describe('The name of the player who scored.'),
 });
-export type GenerateCelebrationAnimationInput = z.infer<typeof GenerateCelebrationAnimationInputSchema>;
+export type GenerateCelebrationAnimationInput = z.infer<
+  typeof GenerateCelebrationAnimationInputSchema
+>;
 
 const GenerateCelebrationAnimationOutputSchema = z.object({
   animationDataUri: z
     .string()
     .describe(
       'A data URI containing the animation data in a suitable format (e.g., GIF, video/mp4).'
-    ),
-  celebrationSpeech: z.string().describe('Audio data as data URI in WAV format'),
+    )
+    .optional(),
+  celebrationSpeech: z
+    .string()
+    .describe('Audio data as data URI in WAV format')
+    .optional(),
 });
-export type GenerateCelebrationAnimationOutput = z.infer<typeof GenerateCelebrationAnimationOutputSchema>;
+export type GenerateCelebrationAnimationOutput = z.infer<
+  typeof GenerateCelebrationAnimationOutputSchema
+>;
 
-export async function generateCelebrationAnimation(input: GenerateCelebrationAnimationInput): Promise<GenerateCelebrationAnimationOutput> {
+export async function generateCelebrationAnimation(
+  input: GenerateCelebrationAnimationInput
+): Promise<GenerateCelebrationAnimationOutput> {
   return generateCelebrationAnimationFlow(input);
 }
-
-const celebratePrompt = ai.definePrompt({
-  name: 'celebratePrompt',
-  input: {schema: GenerateCelebrationAnimationInputSchema},
-  output: {schema: GenerateCelebrationAnimationOutputSchema},
-  prompt: `Create a short, fun celebration animation and corresponding audio for when {{{teamName}}} scores a goal by player {{{playerName}}}. The animation should be in a suitable format like GIF or a short video. Return the animation as a data URI. The crowd is excited and very loud.
-
-Animation should be cartoon style.
-
-Output the audio portion as data URI with wav format.
-
-DO NOT generate a video if the video takes longer than 5 seconds to generate.
-DO NOT generate a video if the request comes from mobile device.`,
-});
 
 const generateCelebrationAnimationFlow = ai.defineFlow(
   {
@@ -52,16 +49,46 @@ const generateCelebrationAnimationFlow = ai.defineFlow(
     outputSchema: GenerateCelebrationAnimationOutputSchema,
   },
   async input => {
-    try {
-      const {output} = await celebratePrompt(input);
-      return output!;
-    } catch (e: any) {
-      console.error('celebratePrompt failed', e);
-      return {
-        animationDataUri: '',
-        celebrationSpeech: '',
-      };
+    const {teamName, playerName} = input;
+    const celebrationText = `The crowd goes wild! ${playerName} of ${teamName} scored a goal!`;
+
+    const [imageRes, audioRes] = await Promise.all([
+      // Generate Image
+      ai.generate({
+        model: googleAI.model('imagen-4.0-fast-generate-001'),
+        prompt: `A cartoon style celebration for a kids football game. ${teamName} just scored. Player ${playerName} is celebrating.`,
+      }),
+      // Generate Speech
+      ai.generate({
+        model: googleAI.model('gemini-2.5-flash-preview-tts'),
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {voiceName: 'Algenib'},
+            },
+          },
+        },
+        prompt: celebrationText,
+      }),
+    ]);
+
+    const animationDataUri = imageRes.media.url;
+    let celebrationSpeech: string | undefined = undefined;
+
+    if (audioRes.media) {
+      const audioBuffer = Buffer.from(
+        audioRes.media.url.substring(audioRes.media.url.indexOf(',') + 1),
+        'base64'
+      );
+      const wavData = await toWav(audioBuffer);
+      celebrationSpeech = `data:audio/wav;base64,${wavData}`;
     }
+
+    return {
+      animationDataUri,
+      celebrationSpeech,
+    };
   }
 );
 
@@ -91,4 +118,3 @@ async function toWav(
     writer.end();
   });
 }
-

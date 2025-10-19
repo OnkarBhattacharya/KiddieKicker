@@ -31,7 +31,7 @@ export default function GoalCelebration({
             setAnimationUri(result.animationDataUri);
         }
         if (result.celebrationSpeech) {
-            setSpeechUri(`data:audio/wav;base64,${result.celebrationSpeech}`);
+            setSpeechUri(result.celebrationSpeech);
         }
       } catch (error) {
         console.error('Failed to fetch celebration:', error);
