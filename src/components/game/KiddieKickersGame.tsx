@@ -182,7 +182,7 @@ export default function KiddieKickersGame() {
         <div className="flex items-center gap-4 mb-8">
             <Logo className="w-16 h-16" />
             <h1 className="text-4xl md:text-6xl font-bold font-headline text-primary tracking-tighter">
-                Kiddie Kickers
+                Ansh_KiKi_CR7 Kickers
             </h1>
         </div>
         <div className="w-full min-h-[60vh] flex items-center justify-center">

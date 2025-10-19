@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'Kiddie Kickers',
+  title: 'Ansh_KiKi_CR7 Kickers',
   description: 'A simple football game for kids!',
 };
 
