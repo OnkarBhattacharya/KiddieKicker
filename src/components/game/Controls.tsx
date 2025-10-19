@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Football } from 'lucide-react';
+import { FootballIcon } from '../icons';
 
 type ControlsProps = {
   onShoot: (aim: number) => void;
@@ -45,7 +45,7 @@ export default function Controls({ onShoot, disabled }: ControlsProps) {
         size="lg"
         className="w-full text-2xl font-extrabold !h-16 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg transform active:scale-95 transition-transform"
       >
-        <Football className="w-8 h-8 mr-3 animate-spin" style={{ animationDuration: disabled ? '2s' : '10s' }} />
+        <FootballIcon className="w-8 h-8 mr-3 animate-spin" style={{ animationDuration: disabled ? '2s' : '10s' }} />
         {disabled ? 'Wait...' : 'SHOOT!'}
       </Button>
     </div>
