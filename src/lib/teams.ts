@@ -1,4 +1,5 @@
-import { LionCubsLogo, TigerStrikersLogo, EagleShootersLogo, PandaPowerLogo } from "@/components/game/TeamLogos";
+
+import { AnshRidersLogo, KiaanStrikersLogo, RonaldoPowersLogo, MessiSkillsLogo } from "@/components/game/TeamLogos";
 
 export type Team = {
   id: string;
@@ -8,23 +9,23 @@ export type Team = {
 
 export const teams: Team[] = [
   {
-    id: 'lions',
-    name: 'Lion Cubs',
-    logo: LionCubsLogo,
+    id: 'ansh-riders',
+    name: 'Ansh Riders',
+    logo: AnshRidersLogo,
   },
   {
-    id: 'tigers',
-    name: 'Tiger Strikers',
-    logo: TigerStrikersLogo,
+    id: 'kiaan-strikers',
+    name: 'Kiaan Strikers',
+    logo: KiaanStrikersLogo,
   },
   {
-    id: 'eagles',
-    name: 'Eagle Shooters',
-    logo: EagleShootersLogo,
+    id: 'ronaldo-powers',
+    name: 'Ronaldo Powers',
+    logo: RonaldoPowersLogo,
   },
   {
-    id: 'pandas',
-    name: 'Panda Power',
-    logo: PandaPowerLogo,
+    id: 'messi-skills',
+    name: 'Messi Skills',
+    logo: MessiSkillsLogo,
   },
 ];
