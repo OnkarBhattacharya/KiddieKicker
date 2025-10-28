@@ -46,3 +46,11 @@ The game's state is managed using React's built-in state management features, in
 ### Backend
 
 The backend logic for the AI opponent is handled by a [Next.js Server Action](https://nextjs.org/docs/app/building-your-application/rendering/server-components#server-actions). The `getAIOpponentMove` function is called from the client to get the AI's move, which is determined by a prompt sent to an AI model.
+
+## Contributing
+
+Contributions are welcome! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
