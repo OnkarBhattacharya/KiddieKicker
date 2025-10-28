@@ -16,6 +16,7 @@ export type GameState =
   | 'TEAM_SELECT'
   | 'DIFFICULTY_SELECT'
   | 'IN_GAME'
+  | 'OPPONENT_TURN'
   | 'CELEBRATING'
   | 'GAME_OVER';
 export type Difficulty = 'easy' | 'medium' | 'hard';
@@ -90,27 +91,64 @@ export default function KiddieKickersGame() {
       return { outcome: 'miss' as ShotOutcome, diveDirection: 0 };
     }
   };
+
+  const handleOpponentShot = async (playerDive: number) => {
+    try {
+      const res = await getAIOpponentMove(
+        difficulty,
+        'The AI opponent is taking a penalty. As the goalkeeper, where should you dive to save it? Assume the shot can go left, right or center.'
+      );
+      const aiMove = res.strategy.toLowerCase();
+      let shotDirection = 0; // Center
+      if (aiMove.includes('left')) {
+        shotDirection = -1;
+      } else if (aiMove.includes('right')) {
+        shotDirection = 1;
+      }
+      
+      const outcome: ShotOutcome = Math.abs(shotDirection - playerDive) > 0.5 ? 'goal' : 'miss';
+
+      const newShots = [...shots];
+      newShots[currentShotIndex] = { ...newShots[currentShotIndex], opponent: outcome };
+      setShots(newShots);
+      
+      return { outcome, shotDirection };
+    } catch (error) {
+      console.error('AI opponent move failed:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not get AI opponent move. Please try again.',
+        variant: 'destructive',
+      });
+      return { outcome: 'miss' as ShotOutcome, shotDirection: 0 };
+    }
+  };
   
   const handleGoalScored = useCallback(() => {
     setGameState('CELEBRATING');
   }, []);
 
   const handleCelebrationFinish = useCallback(() => {
-    if (currentShotIndex >= MAX_SHOTS - 1) {
+    if (shots.filter(s => s.player !== 'pending').length > currentShotIndex) {
+        setGameState('OPPONENT_TURN');
+    } else if (currentShotIndex >= MAX_SHOTS - 1) {
       setGameState('GAME_OVER');
     } else {
       setCurrentShotIndex(prev => prev + 1);
       setGameState('IN_GAME');
     }
-  }, [currentShotIndex]);
+  }, [currentShotIndex, shots]);
 
   const handleMiss = useCallback(() => {
-     if (currentShotIndex >= MAX_SHOTS - 1) {
+    if (shots.filter(s => s.player !== 'pending').length > currentShotIndex) {
+        setGameState('OPPONENT_TURN');
+    } else if (currentShotIndex >= MAX_SHOTS - 1) {
       setGameState('GAME_OVER');
     } else {
-      setCurrentShotIndex(prev => prev + 1);
+       setCurrentShotIndex(prev => prev + 1);
+       setGameState('IN_GAME');
     }
-  }, [currentShotIndex]);
+  }, [currentShotIndex, shots]);
 
 
   const handleRestart = useCallback(() => {
@@ -144,6 +182,7 @@ export default function KiddieKickersGame() {
             )
         );
       case 'IN_GAME':
+      case 'OPPONENT_TURN':
         return (
           playerTeam &&
           opponentTeam && (
@@ -152,11 +191,14 @@ export default function KiddieKickersGame() {
               playerTeam={playerTeam}
               opponentTeam={opponentTeam}
               onShot={handleShot}
+              onOpponentShot={handleOpponentShot}
               onGoal={handleGoalScored}
               onMiss={handleMiss}
+              onTurnEnd={handleCelebrationFinish} 
               scores={scores}
               shots={shots}
               currentShotIndex={currentShotIndex}
+              gameState={gameState}
             />
           )
         );
@@ -182,7 +224,7 @@ export default function KiddieKickersGame() {
         <div className="flex items-center gap-4 mb-8">
             <Logo className="w-16 h-16" />
             <h1 className="text-4xl md:text-6xl font-bold font-headline text-primary tracking-tighter">
-                Ansh_KiKi_CR7 Kickers
+                Kiddie Kickers Championship
             </h1>
         </div>
         <div className="w-full min-h-[60vh] flex items-center justify-center">

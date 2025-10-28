@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import Confetti from 'react-confetti';
 
 type GoalCelebrationProps = {
   teamName: string;
@@ -20,6 +21,7 @@ export default function GoalCelebration({
   const [animationUri, setAnimationUri] = useState<string | null>(null);
   const [speechUri, setSpeechUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function GoalCelebration({
         console.error('Failed to fetch celebration:', error);
       } finally {
         setIsLoading(false);
+        setShowConfetti(true);
       }
     };
     fetchCelebration();
@@ -51,6 +54,7 @@ export default function GoalCelebration({
 
   return (
     <Dialog open={true}>
+        {showConfetti && <Confetti recycle={false} onConfettiComplete={() => setShowConfetti(false)} />}
       <DialogContent className="sm:max-w-[425px] bg-background text-foreground" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-center text-3xl font-bold text-accent">GOOOAL!</DialogTitle>

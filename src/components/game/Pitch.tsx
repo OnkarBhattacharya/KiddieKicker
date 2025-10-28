@@ -60,19 +60,45 @@ const Goalkeeper = ({ diveDirection }: { diveDirection: number }) => {
     >
       <div className="relative w-16 h-24">
         {/* Body */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-8 h-12 bg-accent rounded-t-md" />
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-8 h-12 bg-primary rounded-t-md" />
         {/* Head */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-6 bg-yellow-300 rounded-full" />
         {/* Arms */}
-        <div className="absolute top-4 left-0 w-2 h-8 bg-accent rounded-l-md" />
-        <div className="absolute top-4 right-0 w-2 h-8 bg-accent rounded-r-md" />
+        <div className="absolute top-4 left-0 w-2 h-8 bg-primary rounded-l-md" />
+        <div className="absolute top-4 right-0 w-2 h-8 bg-primary rounded-r-md" />
          {/* Legs */}
-        <div className="absolute bottom-0 left-3 w-2 h-4 bg-accent" />
-        <div className="absolute bottom-0 right-3 w-2 h-4 bg-accent" />
+        <div className="absolute bottom-0 left-3 w-2 h-4 bg-primary" />
+        <div className="absolute bottom-0 right-3 w-2 h-4 bg-primary" />
       </div>
     </motion.div>
   );
 };
+
+
+const OpponentBall = ({ shotDirection, isGoal }: { shotDirection: number, isGoal: boolean }) => {
+    const ballVariants = {
+      idle: { y: 0, scale: 0.5, x: 0 },
+      kick: {
+        y: isGoal? -180 : -150,
+        scale: isGoal? 0.3 : 0.5,
+        x: shotDirection * 80,
+        transition: { duration: 0.5, ease: 'easeOut' },
+      },
+    };
+  
+    return (
+      <motion.div
+        className="absolute bottom-[5%] left-1/2 -translate-x-1/2"
+        variants={ballVariants}
+        initial="idle"
+        animate={'kick'}
+      >
+        <div className="w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center">
+           <div className="w-4 h-4 bg-black rounded-full" />
+        </div>
+      </motion.div>
+    );
+  };
 
 const Ball = ({ isKicking, isGoal }: { isKicking: boolean; isGoal: boolean }) => {
   const ballVariants = {
@@ -102,23 +128,43 @@ const Ball = ({ isKicking, isGoal }: { isKicking: boolean; isGoal: boolean }) =>
 type PitchProps = {
     isKicking: boolean;
     shotResult: { outcome: ShotOutcome; diveDirection: number } | null;
+    isGoalkeeperTurn: boolean;
+    opponentShotResult: { outcome: ShotOutcome; shotDirection: number } | null;
+    playerDive: number | null;
 }
 
-export default function Pitch({ isKicking, shotResult }: PitchProps) {
+export default function Pitch({ 
+    isKicking, 
+    shotResult, 
+    isGoalkeeperTurn,
+    opponentShotResult,
+    playerDive
+}: PitchProps) {
   return (
     <div className="w-full h-full relative overflow-hidden">
+         <div
+        className="absolute inset-0 bg-cover bg-center opacity-20"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1508098682722-e95fb63a4e16?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
+        }}
+      />
       {/* Grass with lines */}
-      <div className="absolute inset-0 bg-green-500">
-        <div className="absolute bottom-0 w-full h-1/2 bg-green-600" />
+      <div className="absolute inset-0 bg-green-500/50">
+        <div className="absolute bottom-0 w-full h-1/2 bg-green-600/50" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/4 border-2 border-white/50 rounded-b-full" />
         <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 w-3 h-3 bg-white rounded-full" />
       </div>
       <Goal />
       <AnimatePresence>
-        {shotResult && <Goalkeeper diveDirection={shotResult.diveDirection} />}
-        {!shotResult && <Goalkeeper diveDirection={0} />}
+        {isGoalkeeperTurn && playerDive !== null && <Goalkeeper diveDirection={playerDive} />}
+        {!isGoalkeeperTurn && shotResult && <Goalkeeper diveDirection={shotResult.diveDirection} />}
+        {!shotResult && !isGoalkeeperTurn && <Goalkeeper diveDirection={0} />}
       </AnimatePresence>
-      <Ball isKicking={isKicking} isGoal={shotResult?.outcome === 'goal'} />
+      
+      {isGoalkeeperTurn 
+        ? opponentShotResult && <OpponentBall shotDirection={opponentShotResult.shotDirection} isGoal={opponentShotResult.outcome === 'goal'} />
+        : <Ball isKicking={isKicking} isGoal={shotResult?.outcome === 'goal'} />
+      }
     </div>
   );
 }
